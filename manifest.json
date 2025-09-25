@@ -1,8 +1,7 @@
 {
-  "name": "Калькулятор підвісних стель",
-  "short_name": "КалькСтіль",
-  "description": "Простий калькулятор підвісних стель Armstrong",
-  "start_url": "./index.html",
+  "name": "Калькулятор підвісної стелі Armstrong",
+  "short_name": "Стеля",
+  "start_url": "index.html",
   "display": "standalone",
   "background_color": "#ffffff",
   "theme_color": "#4CAF50",
