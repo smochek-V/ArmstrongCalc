@@ -1,6 +1,6 @@
 {
   "name": "Калькулятор підвісної стелі Armstrong",
-  "short_name": "Стеля",
+  "short_name": "ArmCalc",
   "start_url": "index.html",
   "display": "standalone",
   "background_color": "#ffffff",
@@ -18,3 +18,4 @@
     }
   ]
 }
+
