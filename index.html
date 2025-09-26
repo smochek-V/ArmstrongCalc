@@ -3,9 +3,8 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title> Armstrong Маяк© (PWA)</title>
+  <title>Armstrong Маяк© (PWA)</title>
 
-  <!-- Підключення PWA -->
   <link rel="manifest" href="manifest.json">
   <meta name="theme-color" content="#4CAF50">
 
@@ -15,17 +14,13 @@
     input, select, button { padding: 10px; margin-top: 5px; width: 100%; max-width: 300px; }
     button { cursor: pointer; }
     .result { margin-top: 20px; padding: 15px; border: 1px solid #ccc; border-radius: 8px; background: #f9f9f9; }
+    .room { border: 1px solid #ddd; padding: 15px; margin-top: 15px; border-radius: 8px; background: #fafafa; }
   </style>
 </head>
 <body>
-  <h2>Armstrong Маяк© </h2>
+  <h2>Armstrong Маяк©</h2>
 
-  <!-- ================================ -->
-  <!-- Калькулятор -->
-  <!-- ================================ -->
-  <label>Довжина кімнати (м): <input type="number" id="length" step="0.1"></label>
-  <label>Ширина кімнати (м): <input type="number" id="width" step="0.1"></label>
-
+  <!-- Норми -->
   <label>Норма підвісів (шт/м²):
     <select id="hangersNorm">
       <option value="1.0">1.0 (економ)</option>
@@ -42,29 +37,72 @@
     </select>
   </label>
 
+  <div id="roomsContainer"></div>
+  <button onclick="addRoom()">Додати кімнату</button>
   <button onclick="calculate()">Розрахувати</button>
 
-  <div id="output" class="result" style="display:none;"></div>
+  <div id="results"></div>
+  <div id="totalResults" class="result" style="display:none;"></div>
 
   <script>
-    function calculate() {
-      let L = parseFloat(document.getElementById('length').value);
-      let W = parseFloat(document.getElementById('width').value);
-      if (isNaN(L) || isNaN(W) || L <= 0 || W <= 0) {
-        alert("Введіть коректні значення!");
+    let roomCount = 0;
+    const maxRooms = 5;
+
+    function addRoom() {
+      if (roomCount >= maxRooms) {
+        alert("Максимум 5 кімнат!");
         return;
       }
+      roomCount++;
+      const container = document.getElementById('roomsContainer');
+      const roomDiv = document.createElement('div');
+      roomDiv.className = 'room';
+      roomDiv.id = `room${roomCount}`;
+      roomDiv.innerHTML = `
+        <h3>Кімната ${roomCount}</h3>
+        <label>
+          <input type="radio" name="mode${roomCount}" value="size" checked onchange="toggleMode(${roomCount})">
+          Ввести довжину/ширину
+        </label>
+        <label>
+          <input type="radio" name="mode${roomCount}" value="area" onchange="toggleMode(${roomCount})">
+          Ввести площу/периметр
+        </label>
 
-      let S = L * W;
-      let hangersNorm = parseFloat(document.getElementById('hangersNorm').value);
-      let reserve = parseFloat(document.getElementById('reserve').value);
+        <div class="sizeInputs" id="sizeInputs${roomCount}">
+          <input type="number" id="length${roomCount}" placeholder="Довжина (м)" step="0.1">
+          <input type="number" id="width${roomCount}" placeholder="Ширина (м)" step="0.1">
+        </div>
 
+        <div class="areaInputs" id="areaInputs${roomCount}" style="display:none;">
+          <input type="number" id="area${roomCount}" placeholder="Площа (м²)" step="0.1">
+          <input type="number" id="perimeter${roomCount}" placeholder="Периметр (м)" step="0.1">
+        </div>
+
+        <div id="resultRoom${roomCount}" class="result" style="display:none;"></div>
+      `;
+      container.appendChild(roomDiv);
+    }
+
+    function toggleMode(id) {
+      const sizeDiv = document.getElementById(`sizeInputs${id}`);
+      const areaDiv = document.getElementById(`areaInputs${id}`);
+      const mode = document.querySelector(`input[name="mode${id}"]:checked`).value;
+      if (mode === "size") {
+        sizeDiv.style.display = "block";
+        areaDiv.style.display = "none";
+      } else {
+        sizeDiv.style.display = "none";
+        areaDiv.style.display = "block";
+      }
+    }
+
+    function calculateMaterials(S, P, hangersNorm, reserve) {
       let tiles = S / 0.36;
-      let mainRunners = (L / 1.2) * (W / 3.6);
+      let mainRunners = S / 10; // приблизна формула
       let cross120 = S * 1.38;
       let cross60 = S * 0.7;
-      let perimeter = 2 * (L + W);
-      let wallAngle = perimeter / 3;
+      let wallAngle = P / 3;
       let hangers = S * hangersNorm;
 
       tiles *= (1 + reserve);
@@ -74,28 +112,80 @@
       wallAngle *= (1 + reserve);
       hangers *= (1 + reserve);
 
-      tiles = Math.ceil(tiles);
-      mainRunners = Math.ceil(mainRunners);
-      cross120 = Math.ceil(cross120);
-      cross60 = Math.ceil(cross60);
-      wallAngle = Math.ceil(wallAngle);
-      hangers = Math.ceil(hangers);
+      return {
+        tiles: Math.ceil(tiles),
+        mainRunners: Math.ceil(mainRunners),
+        cross120: Math.ceil(cross120),
+        cross60: Math.ceil(cross60),
+        wallAngle: Math.ceil(wallAngle),
+        hangers: Math.ceil(hangers)
+      };
+    }
 
-      document.getElementById('output').style.display = 'block';
-      document.getElementById('output').innerHTML = `
-        <b>Розрахунок для кімнати ${L} × ${W} м (${S.toFixed(2)} м²):</b><br>
-        • Плити: ${tiles} шт.<br>
-        • Основні напрямні (3.6 м): ${mainRunners} шт.<br>
-        • Поперечні напрямні 1.2 м: ${cross120} шт.<br>
-        • Поперечні напрямні 0.6 м: ${cross60} шт.<br>
-        • Кутовий профіль (3 м): ${wallAngle} шт.<br>
-        • Підвіси: ${hangers} шт.
+    function calculate() {
+      const hangersNorm = parseFloat(document.getElementById('hangersNorm').value);
+      const reserve = parseFloat(document.getElementById('reserve').value);
+
+      let total = { tiles:0, mainRunners:0, cross120:0, cross60:0, wallAngle:0, hangers:0, area:0 };
+
+      for (let i = 1; i <= roomCount; i++) {
+        const mode = document.querySelector(`input[name="mode${i}"]:checked`).value;
+        let S = 0, P = 0;
+
+        if (mode === "size") {
+          const L = parseFloat(document.getElementById(`length${i}`).value);
+          const W = parseFloat(document.getElementById(`width${i}`).value);
+          if (isNaN(L) || isNaN(W) || L <= 0 || W <= 0) {
+            alert(`Введіть коректні дані для кімнати ${i}`);
+            return;
+          }
+          S = L * W;
+          P = 2 * (L + W);
+        } else {
+          S = parseFloat(document.getElementById(`area${i}`).value);
+          P = parseFloat(document.getElementById(`perimeter${i}`).value);
+          if (isNaN(S) || isNaN(P) || S <= 0 || P <= 0) {
+            alert(`Введіть коректні дані для кімнати ${i}`);
+            return;
+          }
+        }
+
+        const mats = calculateMaterials(S, P, hangersNorm, reserve);
+        total.tiles += mats.tiles;
+        total.mainRunners += mats.mainRunners;
+        total.cross120 += mats.cross120;
+        total.cross60 += mats.cross60;
+        total.wallAngle += mats.wallAngle;
+        total.hangers += mats.hangers;
+        total.area += S;
+
+        const roomRes = document.getElementById(`resultRoom${i}`);
+        roomRes.style.display = 'block';
+        roomRes.innerHTML = `
+          <b>Кімната ${i} (${S.toFixed(2)} м²):</b><br>
+          • Плити: ${mats.tiles} шт.<br>
+          • Основні напрямні (3.6 м): ${mats.mainRunners} шт.<br>
+          • Поперечні напрямні 1.2 м: ${mats.cross120} шт.<br>
+          • Поперечні напрямні 0.6 м: ${mats.cross60} шт.<br>
+          • Кутовий профіль (3 м): ${mats.wallAngle} шт.<br>
+          • Підвіси: ${mats.hangers} шт.
+        `;
+      }
+
+      document.getElementById('totalResults').style.display = 'block';
+      document.getElementById('totalResults').innerHTML = `
+        <h3>Підсумок</h3>
+        Загальна площа: ${total.area.toFixed(2)} м²<br>
+        • Плити: ${total.tiles} шт.<br>
+        • Основні напрямні (3.6 м): ${total.mainRunners} шт.<br>
+        • Поперечні напрямні 1.2 м: ${total.cross120} шт.<br>
+        • Поперечні напрямні 0.6 м: ${total.cross60} шт.<br>
+        • Кутовий профіль (3 м): ${total.wallAngle} шт.<br>
+        • Підвіси: ${total.hangers} шт.
       `;
     }
 
-    // ================================
-    // Реєстрація Service Worker
-    // ================================
+    // PWA Service Worker
     if ('serviceWorker' in navigator) {
       window.addEventListener('load', () => {
         navigator.serviceWorker.register('sw.js')
@@ -103,7 +193,10 @@
           .catch((err) => console.log('Помилка Service Worker:', err));
       });
     }
+
+    // додати першу кімнату автоматично
+    addRoom();
   </script>
 </body>
-
 </html>
+
