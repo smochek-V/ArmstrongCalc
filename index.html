@@ -12,7 +12,7 @@
     body { font-family: Arial, sans-serif; margin: 20px; }
     label { display: block; margin-top: 10px; }
     input, select, button { padding: 10px; margin-top: 5px; width: 100%; max-width: 300px; }
-    button { cursor: pointer; }
+    button { cursor: pointer; margin-right: 5px; }
     .result { margin-top: 20px; padding: 15px; border: 1px solid #ccc; border-radius: 8px; background: #f9f9f9; }
     .room { border: 1px solid #ddd; padding: 15px; margin-top: 15px; border-radius: 8px; background: #fafafa; }
   </style>
@@ -21,11 +21,11 @@
   <h2>Armstrong Маяк©</h2>
 
   <!-- Норми -->
-  <label>Норма підвісів (шт/м²):
+  <label>Норма підвісів:
     <select id="hangersNorm">
-      <option value="1.0">1.0 (економ)</option>
-      <option value="1.33" selected>1.33 (стандарт)</option>
-      <option value="2.0">2.0 (з запасом)</option>
+      <option value="econom">Економ</option>
+      <option value="standard" selected>Стандарт</option>
+      <option value="extra">З запасом</option>
     </select>
   </label>
 
@@ -41,7 +41,6 @@
   <button onclick="addRoom()">Додати кімнату</button>
   <button onclick="calculate()">Розрахувати</button>
 
-  <div id="results"></div>
   <div id="totalResults" class="result" style="display:none;"></div>
 
   <script>
@@ -97,14 +96,25 @@
       }
     }
 
-    function calculateMaterials(S, P, hangersNorm, reserve) {
-      let tiles = S / 0.36;
-      let mainRunners = S / 10; // приблизна формула
-      let cross120 = S * 1.38;
-      let cross60 = S * 0.7;
-      let wallAngle = P / 3;
-      let hangers = S * hangersNorm;
+    function calculateMaterials(S, P, hangersMode, reserve) {
+      // формули "як у більшості калькуляторів"
+      let tiles = S / 0.36;               // плити
+      let mainRunners = S / 2.88;         // основні 3.6 м
+      let cross120 = S * 1.0;             // 1.2 м профілі
+      let cross60 = S * 1.0;              // 0.6 м профілі
+      let wallAngle = P / 3;              // кутовий профіль (3 м)
 
+      // підвіси залежно від режиму
+      let hangers;
+      if (hangersMode === "econom") {
+        hangers = S / 2.0;  // ≈1 шт. на 2 м²
+      } else if (hangersMode === "standard") {
+        hangers = S / 1.44; // ≈1 шт. на 1.44 м²
+      } else {
+        hangers = S / 1.2;  // ≈1 шт. на 1.2 м²
+      }
+
+      // додаємо запас
       tiles *= (1 + reserve);
       mainRunners *= (1 + reserve);
       cross120 *= (1 + reserve);
@@ -123,7 +133,7 @@
     }
 
     function calculate() {
-      const hangersNorm = parseFloat(document.getElementById('hangersNorm').value);
+      const hangersMode = document.getElementById('hangersNorm').value;
       const reserve = parseFloat(document.getElementById('reserve').value);
 
       let total = { tiles:0, mainRunners:0, cross120:0, cross60:0, wallAngle:0, hangers:0, area:0 };
@@ -150,7 +160,7 @@
           }
         }
 
-        const mats = calculateMaterials(S, P, hangersNorm, reserve);
+        const mats = calculateMaterials(S, P, hangersMode, reserve);
         total.tiles += mats.tiles;
         total.mainRunners += mats.mainRunners;
         total.cross120 += mats.cross120;
@@ -194,7 +204,7 @@
       });
     }
 
-    // додати першу кімнату автоматично
+    // автоматично додаємо першу кімнату
     addRoom();
   </script>
 </body>
