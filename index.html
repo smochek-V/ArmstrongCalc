@@ -20,7 +20,6 @@
 <body>
   <h2>Armstrong Маяк©</h2>
 
-  <!-- Норми -->
   <label>Норма підвісів:
     <select id="hangersNorm">
       <option value="econom">Економ</option>
@@ -96,13 +95,21 @@
       }
     }
 
-    function calculateMaterials(S, P, hangersMode, reserve) {
-      // правильні коефіцієнти
-      let tiles = S / 0.36;          // плити
-      let mainRunners = S / 3.9;     // основні 3.6 м (~9 шт на 35 м²)
-      let cross120 = S / 0.7;        // 1.2 м (~50 шт на 35 м²)
-      let cross60 = S / 0.68;        // 0.6 м (~51 шт на 35 м²)
-      let wallAngle = P / 3;         // кутовий профіль (3 м)
+    function calculateMaterials(L, W, S, P, hangersMode, reserve) {
+      // плити
+      let tiles = S / 0.36;
+
+      // основні напрямні 3.6 м (крок 1.2 м уздовж довжини)
+      let mainRunners = Math.ceil(W / 1.2) * (L / 3.6);
+
+      // поперечні 1.2 м (крок 0.6 м між основними)
+      let cross120 = Math.ceil(L / 1.2) * (W / 0.6);
+
+      // поперечні 0.6 м (крок 0.6 м для осередків)
+      let cross60 = Math.ceil(W / 0.6) * (L / 0.6);
+
+      // кутовий профіль
+      let wallAngle = P / 3;
 
       // підвіси
       let hangers;
@@ -140,11 +147,11 @@
 
       for (let i = 1; i <= roomCount; i++) {
         const mode = document.querySelector(`input[name="mode${i}"]:checked`).value;
-        let S = 0, P = 0;
+        let L = 0, W = 0, S = 0, P = 0;
 
         if (mode === "size") {
-          const L = parseFloat(document.getElementById(`length${i}`).value);
-          const W = parseFloat(document.getElementById(`width${i}`).value);
+          L = parseFloat(document.getElementById(`length${i}`).value);
+          W = parseFloat(document.getElementById(`width${i}`).value);
           if (isNaN(L) || isNaN(W) || L <= 0 || W <= 0) {
             alert(`Введіть коректні дані для кімнати ${i}`);
             return;
@@ -158,9 +165,12 @@
             alert(`Введіть коректні дані для кімнати ${i}`);
             return;
           }
+          // приблизна квадратна форма для розрахунку сітки
+          L = Math.sqrt(S);
+          W = Math.sqrt(S);
         }
 
-        const mats = calculateMaterials(S, P, hangersMode, reserve);
+        const mats = calculateMaterials(L, W, S, P, hangersMode, reserve);
         total.tiles += mats.tiles;
         total.mainRunners += mats.mainRunners;
         total.cross120 += mats.cross120;
@@ -209,4 +219,3 @@
   </script>
 </body>
 </html>
-
