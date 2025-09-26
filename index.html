@@ -99,14 +99,14 @@
       // плити
       let tiles = S / 0.36;
 
-      // основні напрямні 3.6 м — скоригований коефіцієнт (~0.22 шт/м²)
-      let mainRunners = S / 4.5;
+      // основні напрямні 3.6 м (крок 1.2 м уздовж довжини)
+      let mainRunners = Math.ceil(W / 1.2) * (L / 3.6);
 
-      // поперечні 1.2 м (схема)
-      let cross120 = S / 0.7;
+      // поперечні 1.2 м (крок 0.6 м між основними)
+      let cross120 = Math.ceil(L / 1.2) * (W / 0.6);
 
-      // поперечні 0.6 м (схема)
-      let cross60 = S / 0.68;
+      // поперечні 0.6 м (крок 0.6 м для осередків)
+      let cross60 = Math.ceil(W / 0.6) * (L / 0.6);
 
       // кутовий профіль
       let wallAngle = P / 3;
@@ -165,6 +165,7 @@
             alert(`Введіть коректні дані для кімнати ${i}`);
             return;
           }
+          // приблизна квадратна форма для розрахунку сітки
           L = Math.sqrt(S);
           W = Math.sqrt(S);
         }
@@ -204,6 +205,7 @@
       `;
     }
 
+    // PWA Service Worker
     if ('serviceWorker' in navigator) {
       window.addEventListener('load', () => {
         navigator.serviceWorker.register('sw.js')
@@ -212,6 +214,7 @@
       });
     }
 
+    // додаємо першу кімнату
     addRoom();
   </script>
 </body>
