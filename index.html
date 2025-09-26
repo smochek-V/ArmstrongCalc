@@ -97,24 +97,24 @@
     }
 
     function calculateMaterials(S, P, hangersMode, reserve) {
-      // формули "як у більшості калькуляторів"
-      let tiles = S / 0.36;               // плити
-      let mainRunners = S / 2.88;         // основні 3.6 м
-      let cross120 = S * 1.0;             // 1.2 м профілі
-      let cross60 = S * 1.0;              // 0.6 м профілі
-      let wallAngle = P / 3;              // кутовий профіль (3 м)
+      // правильні коефіцієнти
+      let tiles = S / 0.36;          // плити
+      let mainRunners = S / 3.9;     // основні 3.6 м (~9 шт на 35 м²)
+      let cross120 = S / 0.7;        // 1.2 м (~50 шт на 35 м²)
+      let cross60 = S / 0.68;        // 0.6 м (~51 шт на 35 м²)
+      let wallAngle = P / 3;         // кутовий профіль (3 м)
 
-      // підвіси залежно від режиму
+      // підвіси
       let hangers;
       if (hangersMode === "econom") {
-        hangers = S / 2.0;  // ≈1 шт. на 2 м²
+        hangers = S / 2.0;
       } else if (hangersMode === "standard") {
-        hangers = S / 1.44; // ≈1 шт. на 1.44 м²
+        hangers = S / 1.44;
       } else {
-        hangers = S / 1.2;  // ≈1 шт. на 1.2 м²
+        hangers = S / 1.2;
       }
 
-      // додаємо запас
+      // запас
       tiles *= (1 + reserve);
       mainRunners *= (1 + reserve);
       cross120 *= (1 + reserve);
@@ -204,7 +204,7 @@
       });
     }
 
-    // автоматично додаємо першу кімнату
+    // додаємо першу кімнату
     addRoom();
   </script>
 </body>
